@@ -12,16 +12,17 @@
 #define MIN_ANGLE_LID 50
 #define MAX_ANGLE_LID 130
 
-typedef void(*offFunction)(void);
-
 Servo servoFinger;  // finger servo
 Servo servoLid;  // box lid servo
 int switchStatus = 0;
-int action = 1;
-long int actionCounter = 0;
 Bounce debouncer = Bounce(); // this is needed for a decent trigger signal
 
+typedef void(*offFunction)(void);  // pointer to switch functions
 #include "animations.h"  // contains functions to switch off as well as array offFunctions[] listing them
+
+int action = 1;  // function to execute
+long int actionCounter;  // count execution of all functions
+long int actionCounters[MAX_FUNCTION];  // count execution of each function
 
 
 // ---- done once when Arduino boots -------------------------------------------
@@ -35,6 +36,9 @@ void setup() {
   servoLid.attach(PIN_LID);
   servoLid.write(MIN_ANGLE_LID);
   randomSeed(analogRead(PIN_UNCONNECTED));
+  for (int i = 0; i < MAX_FUNCTION; i++) {
+    actionCounters[i] = 0;
+  }
 }
 
 
@@ -49,13 +53,16 @@ void loop() {
     Serial.println(" no action required");
   } else if (switchStatus == HIGH){
     action = (random(7)+1);
-    actionCounter++;
     // action=7;
+    actionCounter++;
+    actionCounters[action - 1]++;
     Serial.print(" action is ");
     Serial.print(action);
     Serial.print(" (");
+    Serial.print(actionCounters[action - 1]);
+    Serial.print(" times executed, ");
     Serial.print(actionCounter);
-    Serial.println(". action overall)");
+    Serial.println(" executions overall)");
     offFunctions[action - 1]();
     servoFinger.write(MAX_ANGLE_FINGER);
     delay(200);
