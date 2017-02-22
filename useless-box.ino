@@ -14,14 +14,13 @@
 
 Servo servoFinger;  // finger servo
 Servo servoLid;  // box lid servo
-int switchStatus = 0;
 Bounce debouncer = Bounce(); // this is needed for a decent trigger signal
 
 typedef void(*offFunction)(void);  // pointer to switch functions
 #include "animations.h"  // contains functions to switch off as well as array offFunctions[] listing them
 
 int action = 1;  // function to execute
-long int actionCounter;  // count execution of all functions
+long int actionCounter = 0;  // count execution of all functions
 long int actionCounters[MAX_FUNCTION];  // count execution of each function
 
 
@@ -45,13 +44,10 @@ void setup() {
 // ---- repeat until Arduino is turned off -------------------------------------
 void loop() {
   debouncer.update();
-  switchStatus = debouncer.rose();
   Serial.print("At ");
   Serial.print(millis());
   Serial.print(" msecs,");
-  if (switchStatus == LOW) {
-    Serial.println(" no action required");
-  } else if (switchStatus == HIGH){
+  if (debouncer.read()) {
     action = (random(7)+1);
     // action=7;
     actionCounter++;
@@ -68,6 +64,8 @@ void loop() {
     delay(200);
     servoLid.write(MIN_ANGLE_LID);
     delay(200);
+  } else {
+    Serial.println(" no action required");
   }
   delay(100);    
 }
