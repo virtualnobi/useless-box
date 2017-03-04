@@ -29,7 +29,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(PIN_SWITCH, INPUT_PULLUP);
   debouncer.attach(PIN_SWITCH);
-  debouncer.interval(50);
+  debouncer.interval(10);
   servoFinger.attach(PIN_FINGER);
   servoFinger.write(MAX_ANGLE_FINGER);
   servoLid.attach(PIN_LID);
@@ -43,16 +43,19 @@ void setup() {
 
 // ---- repeat until Arduino is turned off -------------------------------------
 void loop() {
-  debouncer.update();
   Serial.print("At ");
   Serial.print(millis());
-  Serial.print(" msecs,");
+  Serial.print(" msecs, button is ");
+  // for some reason, update() registers the new state correctly only if called twice with delay... 
+  debouncer.update();  delay(30);  debouncer.update();
+  Serial.print(debouncer.read());
+  Serial.print(", ");
   if (debouncer.read()) {
     action = (random(7)+1);
     // action=7;
     actionCounter++;
     actionCounters[action - 1]++;
-    Serial.print(" action is ");
+    Serial.print("action is ");
     Serial.print(action);
     Serial.print(" (");
     Serial.print(actionCounters[action - 1]);
@@ -65,9 +68,8 @@ void loop() {
     servoLid.write(MIN_ANGLE_LID);
     delay(200);
   } else {
-    Serial.println(" no action required");
+    Serial.println("no action required");
   }
-  delay(100);    
 }
 
 
